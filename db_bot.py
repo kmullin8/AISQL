@@ -70,8 +70,8 @@ commonSqlOnlyRequest = " Give me a sqlite select statement that answers the ques
 strategies = {
     "zero_shot": setupSqlScript + commonSqlOnlyRequest,
     "single_domain_double_shot": (setupSqlScript + 
-                   " Who doesn't have a way for us to text them? " + 
-                   " \nSELECT p.person_id, p.name\nFROM person p\nLEFT JOIN phone ph ON p.person_id = ph.person_id AND ph.can_recieve_sms = 1\nWHERE ph.phone_id IS NULL;\n " +
+                   " Here is an example:\nFind members who have never attended a class? " +
+                   " \nSELECT m.member_id, m.name\nFROM member m\nLEFT JOIN attendance a ON m.member_id = a.member_id\nWHERE a.member_id IS NULL;\n " +
                    commonSqlOnlyRequest)
 }
 
@@ -84,7 +84,6 @@ questions = [
     "Who has more than one personal training session with the same trainer?",
     "Which members do not have an email or phone number on file?",
     "Are there any trainers who have not been assigned to a class?"
-    # "I need insert SQL into my tables. Can you provide good unique data?"
 ]
 
 def sanitizeForJustSql(value):
@@ -115,7 +114,7 @@ for strategy in strategies:
             queryRawResponse = str(runSql(sqlSyntaxResponse))
             print(queryRawResponse)
 
-            friendlyResultsPrompt = f'I asked a question "{question}" and the response was "{queryRawResponse}". Please, just give a concise response in a more friendly way? Please do not give any other suggests or chatter.'
+            friendlyResultsPrompt = f'I asked a question "{question}" and the response was "{queryRawResponse}" here is the schema this data was located in:"{setupSqlScript}". Please, just give a concise response in a more friendly way? Please do not give any other suggests or chatter.'
             friendlyResponse = getChatGptResponse(friendlyResultsPrompt)
             print(friendlyResponse)
         except Exception as err:
