@@ -1,48 +1,59 @@
-create table person (
-    person_id integer primary key,
-    name varchar(20) not null
+-- Gym Membership System Schema
+
+CREATE TABLE member (
+    member_id INTEGER PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    phone VARCHAR(15),
+    date_joined DATE NOT NULL,
+    membership_id INTEGER NOT NULL,
+    FOREIGN KEY (membership_id) REFERENCES membership (membership_id)
 );
 
-create table phone (
-    phone_id integer primary key,
-    person_id integer not null,
-    area_code int not null,
-    number int not null,
-    can_recieve_sms tinyint not null,
-    foreign key (person_id) references person (person_id)
+
+CREATE TABLE trainer (
+    trainer_id INTEGER PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    specialty VARCHAR(50),
+    email VARCHAR(100) UNIQUE NOT NULL,
+    phone VARCHAR(15)
 );
 
-create table address (
-    address_id integer primary key,
-    person_id integer not null,
-    street varchar(50),
-    zip integer not null
+CREATE TABLE membership (
+    membership_id INTEGER PRIMARY KEY,
+    type VARCHAR(20) NOT NULL,
+    price DECIMAL(10,2) NOT NULL,
+    duration_months INTEGER NOT NULL
 );
 
-create table zip (
-    zip integer primary key,
-    city varchar(35),
-    state_two_letter_code char(2)
+CREATE TABLE class (
+    class_id INTEGER PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    trainer_id INTEGER NOT NULL,
+    schedule VARCHAR(50),
+    FOREIGN KEY (trainer_id) REFERENCES trainer (trainer_id)
 );
 
-create table dog (
-    dog_id integer primary key,
-    name varchar(35),
-    breed varchar(35),
-    birth_date date
+CREATE TABLE attendance (
+    attendance_id INTEGER PRIMARY KEY,
+    member_id INTEGER NOT NULL,
+    class_id INTEGER NOT NULL,
+    date DATE NOT NULL,
+    FOREIGN KEY (member_id) REFERENCES member (member_id),
+    FOREIGN KEY (class_id) REFERENCES class (class_id)
 );
 
-create table award (
-    award_id integer primary key,
-    dog_id integer not null,
-    event_date date,
-    award_name varchar(25) not null,
-    foreign key (dog_id) references dog (dog_id)
+CREATE TABLE equipment (
+    equipment_id INTEGER PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    last_maintenance DATE NOT NULL
 );
 
-create table person_dog (
-    dog_id integer,
-    person_id integer,
-    foreign key (dog_id) references dog (dog_id),
-    foreign key (person_id) references person (person_id)
+CREATE TABLE session (
+    session_id INTEGER PRIMARY KEY,
+    member_id INTEGER NOT NULL,
+    trainer_id INTEGER NOT NULL,
+    session_date DATE NOT NULL,
+    FOREIGN KEY (member_id) REFERENCES member (member_id),
+    FOREIGN KEY (trainer_id) REFERENCES trainer (trainer_id)
 );
