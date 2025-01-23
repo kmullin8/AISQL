@@ -76,15 +76,15 @@ strategies = {
 }
 
 questions = [
-    "Which are the most awarded dogs?",
-    "Which dogs have multiple owners?",
-    "Which people have multiple dogs?",
-    "What are the top 3 cities represented?",
-    "What are the names and cities of the dogs who have awards?",
-    "Who has more than one phone number?",
-    "Who doesn't have a way for us to text them?",
-    "Will we have a problem texting any of the previous award winners?"
-    # "I need insert sql into my tables can you provide good unique data?"
+    "Which are the most active members based on class attendance?",
+    "Which members have attended multiple different classes?",
+    "Which trainers have the most personal training sessions?",
+    "What are the top 3 most attended classes?",
+    "Which members have personal training sessions scheduled?",
+    "Who has more than one personal training session with the same trainer?",
+    "Which members do not have an email or phone number on file?",
+    "Are there any trainers who have not been assigned to a class?"
+    # "I need insert SQL into my tables. Can you provide good unique data?"
 ]
 
 def sanitizeForJustSql(value):
@@ -103,13 +103,19 @@ for strategy in strategies:
     for question in questions:
         print(question)
         error = "None"
+        sqlSyntaxResponse = ""
+        queryRawResponse = ""
+        friendlyResponse = ""
+
         try:
             sqlSyntaxResponse = getChatGptResponse(strategies[strategy] + " " + question)
             sqlSyntaxResponse = sanitizeForJustSql(sqlSyntaxResponse)
             print(sqlSyntaxResponse)
+
             queryRawResponse = str(runSql(sqlSyntaxResponse))
             print(queryRawResponse)
-            friendlyResultsPrompt = "I asked a question \"" + question +"\" and the response was \""+queryRawResponse+"\" Please, just give a concise response in a more friendly way? Please do not give any other suggests or chatter."
+
+            friendlyResultsPrompt = f'I asked a question "{question}" and the response was "{queryRawResponse}". Please, just give a concise response in a more friendly way? Please do not give any other suggests or chatter.'
             friendlyResponse = getChatGptResponse(friendlyResultsPrompt)
             print(friendlyResponse)
         except Exception as err:
@@ -117,8 +123,8 @@ for strategy in strategies:
             print(err)
 
         questionResults.append({
-            "question": question, 
-            "sql": sqlSyntaxResponse, 
+            "question": question,
+            "sql": sqlSyntaxResponse,
             "queryRawResponse": queryRawResponse,
             "friendlyResponse": friendlyResponse,
             "error": error
@@ -127,7 +133,7 @@ for strategy in strategies:
     responses["questionResults"] = questionResults
 
     with open(getPath(f"response_{strategy}_{time()}.json"), "w") as outFile:
-        json.dump(responses, outFile, indent = 2)
+        json.dump(responses, outFile, indent=2)
             
 
 sqliteCursor.close()
