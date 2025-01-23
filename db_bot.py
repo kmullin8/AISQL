@@ -87,10 +87,15 @@ questions = [
 def sanitizeForJustSql(value):
     gptStartSqlMarker = "```sql"
     gptEndSqlMarker = "```"
+
+    # Extract only the SQL content
     if gptStartSqlMarker in value:
         value = value.split(gptStartSqlMarker)[1]
     if gptEndSqlMarker in value:
         value = value.split(gptEndSqlMarker)[0]
+
+    # Add a tab at the beginning of each line
+    value = "\n".join("\t" + line for line in value.strip().split("\n"))
 
     return value
 
@@ -107,14 +112,14 @@ for strategy in strategies:
         try:
             sqlSyntaxResponse = getChatGptResponse(strategies[strategy] + " " + question)
             sqlSyntaxResponse = sanitizeForJustSql(sqlSyntaxResponse)
-            print("SQL: ", sqlSyntaxResponse)
+            print("SQL: \n", sqlSyntaxResponse)
 
             queryRawResponse = str(runSql(sqlSyntaxResponse))
-            print("Raw Response:\n", queryRawResponse)
+            print("Raw Response:\n", "  ", queryRawResponse)
 
             friendlyResultsPrompt = f'I asked a question "{question}" and the response was "{queryRawResponse}" here is the schema this data was located in:"{setupSqlScript}". Please, just give a concise response in a more friendly way? Please do not give any other suggests or chatter.'
             friendlyResponse = getChatGptResponse(friendlyResultsPrompt)
-            print("Response:\n", friendlyResponse)
+            print("Response:\n", "  ", friendlyResponse, "\n\n")
         except Exception as err:
             error = str(err)
             print("Error:\n", err)
