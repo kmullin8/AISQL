@@ -1,0 +1,108 @@
+Prompt strategies used:
+    There is alot of improvement from the zero shot to the single domain double shot strategies. Here are their prompts:
+        zero shot:
+            setupSqlScript +
+            " Give me a sqlite select statement that answers the question. Only respond with sqlite syntax. If there is
+            an error do not explain it!"
+        single domain double shot strategies:
+            setupSqlScript +
+            " when generating sql try and make it so the queries will give the more understandable answers, for example
+            when doing a select uses the trainer_id and the name since trainer_id: 1 doesn't have much significance but
+            name: Alice Johnson does have alot of significant. Here is an example:\n
+            Find members who have never attended a class? " + " \n
+            SELECT m.member_id, m.name\n
+            FROM member m\n
+            LEFT JOIN attendance a ON m.member_id = a.member_id\n
+            WHERE a.member_id IS NULL;\n " +
+            " Give me a sqlite select statement that answers the question. Only respond with sqlite syntax. If there is
+            an error do not explain it!"
+   The first two examples given in sample that worked and sample that didn't work are both zero shot. Even though the zero shot was correct we can see how much more affective the
+   double shot strategy was as the responses are much easier to read without having knowledge of out data or schema.
+
+Database:
+    This database efficiently manages gym operations by tracking members, trainers, classes, attendance,
+    personal training sessions, memberships, and equipment maintenance.
+
+Schema:
+    see schema.png
+
+Sample that worked:
+    zero shot
+    Question: Which trainers have the most personal training sessions?
+    SQL query: SELECT trainer.name, COUNT(session.session_id) AS session_count
+               FROM session
+               JOIN trainer ON session.trainer_id = trainer.trainer_id
+               GROUP BY trainer.trainer_id
+               ORDER BY session_count DESC;
+    Response: The trainers with the most personal training sessions are Bob Smith with 2 sessions, and Alice Johnson with 1 session.
+
+Sample that didn't work:
+    *not wrong but wanted a more human response
+    Question: Who has more than one personal training session with the same trainer?
+    SQL query: SELECT member_id, trainer_id, COUNT(*) as session_count
+               FROM session
+               GROUP BY member_id, trainer_id
+               HAVING session_count > 1;
+    Response: It looks like member ID 2 has had 2 personal training sessions with trainer ID 2.
+
+6 other examples:
+    Question: Which are the most active members based on class attendance?
+    SQL query: SELECT m.member_id, m.name, COUNT(a.attendance_id) AS attendance_count
+               FROM member m
+               JOIN attendance a ON m.member_id = a.member_id
+               GROUP BY m.member_id, m.name
+               ORDER BY attendance_count DESC;
+    Response: The most active members based on class attendance are:
+
+              1. John Doe - 2 attendances
+              2. Jane Smith - 1 attendance
+
+    Question: Which members have attended multiple different classes?
+    SQL query: SELECT m.member_id, m.name, COUNT(DISTINCT a.class_id) AS class_count
+               FROM member m
+               JOIN attendance a ON m.member_id = a.member_id
+               GROUP BY m.member_id, m.name
+               HAVING class_count > 1;
+    Response: Based on your query, the member who has attended multiple different classes is:
+
+              - John Doe (ID: 1) - He has attended 2 different classes.
+
+    Question: Which trainers have the most personal training sessions?
+    SQL query: SELECT t.trainer_id, t.name, COUNT(s.session_id) AS total_sessions
+               FROM trainer t
+               LEFT JOIN session s ON t.trainer_id = s.trainer_id
+               GROUP BY t.trainer_id, t.name
+               ORDER BY total_sessions DESC;
+    Response: The trainers with the most personal training sessions are:
+
+              1. Bob Smith - 2 sessions
+              2. Alice Johnson - 1 session
+
+    Question: What are the top 3 most attended classes?
+    SQL query: SELECT c.class_id, c.name, COUNT(a.member_id) AS attendance_count
+               FROM class c
+               JOIN attendance a ON c.class_id = a.class_id
+               GROUP BY c.class_id, c.name
+               ORDER BY attendance_count DESC
+               LIMIT 3;
+    Response: It looks like the top 3 most attended classes are:
+
+              1. Morning Yoga - 2 attendees
+              2. HIIT Workout - 1 attendee
+
+    Question: Which members have personal training sessions scheduled?
+    SQL query: SELECT m.member_id, m.name
+               FROM member m
+               JOIN session s ON m.member_id = s.member_id;
+    Response: The members with personal training sessions scheduled are: John Doe and Jane Smith (listed twice).
+
+    Question: Who has more than one personal training session with the same trainer?
+    SQL query: SELECT m.member_id, m.name, t.name AS trainer_name, COUNT(s.session_id) AS session_count
+               FROM session s
+               JOIN member m ON s.member_id = m.member_id
+               JOIN trainer t ON s.trainer_id = t.trainer_id
+               GROUP BY m.member_id, t.trainer_id
+               HAVING COUNT(s.session_id) > 1;
+    Response: The member who has more than one personal training session with the same trainer is Jane Smith, working with Bob Smith for a total of 2 sessions.
+
+
