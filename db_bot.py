@@ -4,7 +4,7 @@ import os
 import sqlite3
 from time import time
 
-print("Running db_bot.py!")
+print("Running db_bot.py!\n")
 
 fdir = os.path.dirname(__file__)
 def getPath(fname):
@@ -68,7 +68,7 @@ commonSqlOnlyRequest = " Give me a sqlite select statement that answers the ques
 strategies = {
     "zero_shot": setupSqlScript + commonSqlOnlyRequest,
     "single_domain_double_shot": (setupSqlScript + 
-                   " Here is an example:\nFind members who have never attended a class? " +
+                   " when generating sql try and make it so the queries will give the more understandable answers, for example when doina a select uses the trainer_id and the name since trainer_id: 1 doesnt have much significance but name: Alice Johnson does have alot of significant. Here is an example:\nFind members who have never attended a class? " +
                    " \nSELECT m.member_id, m.name\nFROM member m\nLEFT JOIN attendance a ON m.member_id = a.member_id\nWHERE a.member_id IS NULL;\n " +
                    commonSqlOnlyRequest)
 }
@@ -117,7 +117,7 @@ for strategy in strategies:
             queryRawResponse = str(runSql(sqlSyntaxResponse))
             print("Raw Response:\n", "  ", queryRawResponse)
 
-            friendlyResultsPrompt = f'I asked a question "{question}" and the response was "{queryRawResponse}" here is the schema this data was located in:"{setupSqlScript}". Please, just give a concise response in a more friendly way? Please do not give any other suggests or chatter.'
+            friendlyResultsPrompt = f'I asked a question "{question}" here was the sql query "{sqlSyntaxResponse}" the response was "{queryRawResponse}" here is the schema this data was located in:"{setupSqlScript}". Please, just give a concise response in a more friendly way? Please do not give any other suggests or chatter.'
             friendlyResponse = getChatGptResponse(friendlyResultsPrompt)
             print("Response:\n", "  ", friendlyResponse, "\n\n")
         except Exception as err:
